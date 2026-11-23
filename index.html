@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Puti-AI | 萬用現場共創便利貼牆（公開自訂版）</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --ink: #0f172a;
+      --muted: #475569;
+      --subtle: #64748b;
+      --border: #e2e8f0;
+      --accent: #2563eb;
+      --base-font: 16px;
+    }
+
+    html.big-font { --base-font: 21px; }
+    * { box-sizing: border-box; }
+    html { font-size: var(--base-font); }
+
+    html.big-font .wall { grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); }
+    html.big-font .sticky-text { font-size: 1.22rem; line-height: 1.5; }
+
+    .qr-modal-card.qr-max {
+      max-width: 96vw !important;
+      width: 96vw;
+      height: 94vh;
+      max-height: 94vh;
+    }
+    .qr-img-zoomable {
+      width: 280px;
+      height: 280px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      cursor: zoom-in;
+      transition: all 0.2s ease;
+    }
+    .qr-modal-card.qr-max .qr-img-zoomable {
+      width: min(68vh, 78vw, 680px);
+      height: min(68vh, 78vw, 680px);
+      cursor: zoom-out;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      background-color: var(--bg);
+      background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+      background-size: 22px 22px;
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Control Bar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 0.65rem 1.25rem;
+    }
+
+    .topbar-row {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .brand-tag {
+      background: #0f172a;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 0.3rem 0.6rem;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+
+    .topic-input {
+      flex: 1;
+      min-width: 220px;
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 800;
+      padding: 0.42rem 0.75rem;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .topic-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: var(--ink);
+      font-size: 0.84rem;
+      font-weight: 700;
+      padding: 0.44rem 0.8rem;
+      border-radius: 9px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.15s ease;
+    }
+
+    button:hover:not(:disabled) { background: #f1f5f9; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    button.primary { background: var(--accent); color: #fff; border-color: transparent; }
+    button.primary:hover:not(:disabled) { filter: brightness(1.08); }
+    button.dark { background: #0f172a; color: #fff; border-color: transparent; }
+    button.warn { background: #fff7ed; color: #c2410c; border-color: #fdba74; }
+
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
+    .dot.live { background: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2); }
+
+    /* Sub-toolbar */
+    .subbar {
+      max-width: 1440px;
+      width: 100%;
+      margin: 0.75rem auto 0;
+      padding: 0 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .quick-add {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex: 1;
+      max-width: 680px;
+      flex-wrap: wrap;
+    }
+
+    input, textarea {
+      font-family: inherit;
+      font-size: 0.88rem;
+      padding: 0.44rem 0.7rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 9px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    }
+
+    .wall-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+
+    .pill-btn { font-size: 0.78rem; padding: 0.28rem 0.65rem; border-radius: 999px; }
+    .pill-btn.active { background: #0f172a; color: #fff; border-color: #0f172a; }
+
+    /* Sticky Notes Canvas */
+    .wall-wrap {
+      max-width: 1440px;
+      width: 100%;
+      margin: 0.85rem auto 2rem;
+      padding: 0 1.25rem;
+      flex: 1;
+    }
+
+    .wall {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .sticky {
+      background: #fef08a;
+      border: 1px solid #eab308;
+      border-radius: 4px 14px 14px 14px;
+      padding: 1rem 1.05rem 0.8rem;
+      min-height: 155px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      box-shadow: 0 8px 18px -6px rgba(15, 23, 42, 0.14);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .sticky:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.18);
+    }
+
+    .sticky.c1 { background: #fef08a; border-color: #eab308; }
+    .sticky.c2 { background: #bae6fd; border-color: #38bdf8; }
+    .sticky.c3 { background: #bbf7d0; border-color: #4ade80; }
+    .sticky.c4 { background: #fed7aa; border-color: #fb923c; }
+    .sticky.starred { box-shadow: 0 0 0 3px #2563eb, 0 12px 24px -6px rgba(37, 99, 235, 0.25); }
+
+    .sticky-text {
+      font-size: 1.02rem;
+      font-weight: 600;
+      line-height: 1.55;
+      color: #0f172a;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    .sticky-foot {
+      margin-top: auto;
+      padding-top: 0.45rem;
+      border-top: 1px dashed rgba(15, 23, 42, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      font-size: 0.78rem;
+      color: #334155;
+    }
+
+    .sticky-author {
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 110px;
+    }
+
+    .sticky-btns { display: flex; align-items: center; gap: 0.25rem; }
+
+    .mini {
+      font-size: 0.74rem;
+      padding: 0.16rem 0.46rem;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(15, 23, 42, 0.14);
+    }
+    .mini.on { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+    .empty-wall {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3.2rem 1.5rem;
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px dashed #cbd5e1;
+      border-radius: 18px;
+      color: var(--muted);
+    }
+    .empty-wall h2 { margin: 0 0 0.5rem; font-size: 1.25rem; color: var(--ink); }
+    .empty-wall p { margin: 0 0 1.1rem; font-size: 0.94rem; }
+    .empty-actions { display: flex; justify-content: center; gap: 0.6rem; flex-wrap: wrap; }
+
+    /* Modal */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+    .modal-bg.open { display: flex; }
+
+    .modal {
+      background: #fff;
+      border-radius: 16px;
+      max-width: 680px;
+      width: 100%;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 24px 48px rgba(15, 23, 42, 0.26);
+    }
+
+    .modal-head {
+      padding: 0.9rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-head h2 { margin: 0; font-size: 1.06rem; }
+
+    .modal-body {
+      padding: 1.1rem 1.2rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .modal-foot {
+      padding: 0.75rem 1.2rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.45rem;
+      background: #f8fafc;
+      flex-wrap: wrap;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+    }
+    .field input, .field textarea { width: 100%; }
+
+    .ai-output {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+      font-size: 0.92rem;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    .history-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem 0.9rem;
+      background: #f8fafc;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1.2rem;
+      right: 1.2rem;
+      background: #0f172a;
+      color: #fff;
+      padding: 0.58rem 1rem;
+      border-radius: 9px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 120;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    footer.site-footer {
+      margin-top: auto;
+      background: rgba(255, 255, 255, 0.92);
+      border-top: 1px solid var(--border);
+      padding: 0.9rem 1.2rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    footer.site-footer a { color: #2563eb; font-weight: 700; }
+
+    @media (max-width: 720px) {
+      .quick-add { max-width: 100%; }
+      .wall { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-row">
+      <span class="brand-tag">Puti-AI 萬用便利貼牆</span>
+      <input
+        id="topicInput"
+        class="topic-input"
+        type="text"
+        placeholder="輸入本輪討論題目（例：這單元學生最容易卡在哪？／給我一個破冰點子）"
+      />
+      <div class="actions">
+        <button type="button" id="qrBtn">📱 掃碼 QR</button>
+        <button type="button" id="syncBtn"><span class="dot" id="syncDot"></span> <span id="syncText">同步</span></button>
+        <button type="button" id="newRoundBtn" class="warn" title="封存目前牆面並只接收接下來的新回覆（不刪除試算表資料）">🆕 開新回合</button>
+        <button type="button" id="copyAiBtn" class="primary">📋 複製全部丟 AI</button>
+        <button type="button" id="aiSummaryBtn">✨ AI 直接整理</button>
+        <button type="button" id="historyBtn">📁 紀錄 (<span id="histCount">0</span>)</button>
+        <button type="button" id="fontBtn" title="大螢幕放大字體">🔍 大字</button>
+        <button type="button" id="setupBtn">⚙️ 設定</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="subbar">
+    <div class="quick-add">
+      <input id="quickAuthor" type="text" placeholder="組別／暱稱" style="width:125px;" />
+      <input id="quickText" type="text" placeholder="現場口頭補充或自己貼一張便利貼（按 Enter 送出）..." style="flex:1;min-width:200px;" />
+      <button type="button" id="quickAddBtn" class="dark">➕ 貼上</button>
+    </div>
+
+    <div class="wall-meta">
+      <span>目前 <strong id="roundBadge">第 1 輪</strong> ・ <strong id="noteCount">0</strong> 張便利貼</span>
+      <button type="button" class="pill-btn active" id="sortNewBtn">最新</button>
+      <button type="button" class="pill-btn" id="sortVoteBtn">👍 最多</button>
+    </div>
+  </div>
+
+  <main class="wall-wrap">
+    <div class="wall" id="wall"></div>
+  </main>
+
+  <!-- QR Modal -->
+  <div class="modal-bg" id="qrModal">
+    <div class="modal qr-modal-card" id="qrModalCard" style="max-width:460px;text-align:center;">
+      <div class="modal-head">
+        <h2>📱 手機掃碼貼便利貼</h2>
+        <button type="button" data-close="qrModal">✕</button>
+      </div>
+      <div class="modal-body" id="qrBody" style="align-items:center;justify-content:center;flex:1;"></div>
+      <div class="modal-foot">
+        <button type="button" id="qrMaxToggleBtn">⛶ 放到最大</button>
+        <button type="button" data-close="qrModal" class="primary">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Setup Modal (Blank Shell for Anyone) -->
+  <div class="modal-bg" id="setupModal">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>⚙️ 綁定自己的表單與 AI（資料僅存於你的瀏覽器）</h2>
+        <button type="button" data-close="setupModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label>1. 你的 Google 試算表網址（共用權限須設「知道連結的人均可檢視」）</label>
+          <input id="inSheetUrl" type="text" placeholder="https://docs.google.com/spreadsheets/d/.../edit?usp=sharing" />
+        </div>
+        <div class="field">
+          <label>2. 你的 Google 表單網址（給現場手機掃 QR Code 填寫）</label>
+          <input id="inFormUrl" type="text" placeholder="https://forms.gle/..." />
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:0.45rem;font-size:0.86rem;font-weight:700;cursor:pointer;">
+            <input type="checkbox" id="inAutoPoll" style="width:auto;" />
+            開啟自動同步（每 8 秒自動抓新便利貼）
+          </label>
+          <button type="button" id="copyBookmarkBtn" title="產生帶入你表單與試算表網址的書籤連結（不含任何 API Key），換電腦打開馬上就能用">🔗 複製我的專屬書籤連結</button>
+        </div>
+
+        <hr style="border:none;border-top:1px solid var(--border);margin:0.1rem 0;" />
+
+        <div class="field">
+          <label>3. 你的 GAS AI 代理網址（選填・想在公用電腦免輸 API Key 時使用）</label>
+          <div style="display:flex;gap:0.4rem;">
+            <input id="inGasProxyUrl" type="text" placeholder="https://script.google.com/macros/s/.../exec（選填）" style="flex:1;" />
+            <button type="button" id="testProxyBtn">🔍 測試代理</button>
+          </div>
+          <div id="proxyStatusMsg" style="font-size:0.78rem;color:var(--subtle);margin-top:0.3rem;"></div>
+        </div>
+
+        <div class="field">
+          <label>4. 你的 Gemini API Key（選填・僅存你本機瀏覽器，若無也可直接用「📋 複製全部丟 AI」）</label>
+          <input id="inGeminiKey" type="password" placeholder="AIzaSy...（選填）" />
+        </div>
+
+        <details style="background:#f8fafc;padding:0.7rem 0.9rem;border-radius:10px;font-size:0.84rem;border:1px solid var(--border);">
+          <summary style="cursor:pointer;font-weight:800;">📖 第一次用？30 秒自建「萬用 2 題 Google 表單」教學</summary>
+          <ol style="margin:0.5rem 0 0;padding-left:1.2rem;color:var(--muted);line-height:1.7;">
+            <li>開一個 Google 表單，只放 2 題：<strong>① 組別／暱稱</strong>（簡答）、<strong>② 你的想法</strong>（段落）。</li>
+            <li>表單切到「回覆」→「建立試算表」，將試算表右上角共用權限設為「<strong>知道連結的人均可檢視</strong>」。</li>
+            <li>把試算表網址貼到第 1 格、表單填寫連結貼到第 2 格，以後換任何課程都能用同一個 QR Code！</li>
+          </ol>
+        </details>
+
+        <details style="background:#f8fafc;padding:0.7rem 0.9rem;border-radius:10px;font-size:0.84rem;border:1px solid var(--border);">
+          <summary style="cursor:pointer;font-weight:800;">🛡️ 進階：想做自己的 GAS 代理藏住 API Key？點此複製後端程式碼</summary>
+          <p style="margin:0.45rem 0;color:var(--muted);line-height:1.65;">
+            到 <strong>script.google.com</strong> 新增專案 → 貼上以下程式碼 → 左側「專案設定 → 指令碼屬性」新增 <code>GEMINI_API_KEY</code> → 右上角「部署 → 新增部署作業（網頁應用程式，誰可以存取選「所有人」）」→ 把網址貼回上面第 3 格即可！
+          </p>
+          <button type="button" id="copyGasCodeBtn" class="primary">📋 一鍵複製 GAS 代理程式碼</button>
+        </details>
+      </div>
+      <div class="modal-foot">
+        <button type="button" id="demoBtn">🧪 載入示範便利貼</button>
+        <button type="button" id="unignoreBtn">↺ 重抓試算表全部資料</button>
+        <button type="button" id="saveSetupBtn" class="primary">💾 儲存並同步</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Summary Modal -->
+  <div class="modal-bg" id="aiModal">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>✨ AI 整理結果</h2>
+        <button type="button" data-close="aiModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="ai-output" id="aiOutputBox">整理中...</div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" id="copyAiResultBtn" class="primary">📋 複製整理結果</button>
+        <button type="button" data-close="aiModal">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <div class="modal-bg" id="historyModal">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>📁 歷史回合紀錄</h2>
+        <button type="button" data-close="historyModal">✕</button>
+      </div>
+      <div class="modal-body" id="historyBody"></div>
+      <div class="modal-foot">
+        <button type="button" id="clearHistoryBtn" style="color:#b91c1c;margin-right:auto;">清空歷史</button>
+        <button type="button" id="exportHistoryBtn" class="primary">⬇️ 下載全部回合 (.md)</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <footer class="site-footer">
+    屏東縣後庄國小黃朝榮老師作品，免費分享，歡迎擴散推廣，嚴禁商用與任何侵權、不尊重著作權的行為
+    ｜ 更多 Puti-AI 教學工具：<a href="https://padlet.com/clongwh/puti_ai_tools" target="_blank" rel="noopener noreferrer">點此前往</a>
+  </footer>
+
+  <script>
+    const STORE = "puti_universal_sticky_wall_public_v1";
+    const GAS_PROXY_CODE = [
+      'const DEFAULT_MODEL = "gemini-2.5-flash";',
+      'const MAX_PROMPT_LENGTH = 15000;',
+      '',
+      'function jsonOutput(payload) {',
+      '  return ContentService.createTextOutput(JSON.stringify(payload)).setMimeType(ContentService.MimeType.JSON);',
+      '}',
+      '',
+      'function doGet() {',
+      '  const key = PropertiesService.getScriptProperties().getProperty("GEMINI_API_KEY");',
+      '  return jsonOutput({ ok: true, service: "Puti-AI Sticky Wall Gemini Proxy", hasKey: Boolean(key && key.trim()) });',
+      '}',
+      '',
+      'function doPost(e) {',
+      '  try {',
+      '    const apiKey = (PropertiesService.getScriptProperties().getProperty("GEMINI_API_KEY") || "").trim();',
+      '    if (!apiKey) return jsonOutput({ ok: false, error: "尚未在指令碼屬性設定 GEMINI_API_KEY" });',
+      '    const body = JSON.parse((e && e.postData && e.postData.contents) ? e.postData.contents : "{}");',
+      '    const prompt = String(body.prompt || "").trim();',
+      '    if (!prompt) return jsonOutput({ ok: false, error: "缺少 prompt" });',
+      '    if (prompt.length > MAX_PROMPT_LENGTH) return jsonOutput({ ok: false, error: "內容超過長度上限" });',
+      '    const url = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(DEFAULT_MODEL) + ":generateContent?key=" + encodeURIComponent(apiKey);',
+      '    const resp = UrlFetchApp.fetch(url, { method: "post", contentType: "application/json", payload: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }), muteHttpExceptions: true });',
+      '    const code = resp.getResponseCode();',
+      '    const data = JSON.parse(resp.getContentText() || "{}");',
+      '    if (code < 200 || code >= 300) return jsonOutput({ ok: false, error: (data.error && data.error.message) || ("HTTP " + code) });',
+      '    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";',
+      '    return text ? jsonOutput({ ok: true, text: text.trim() }) : jsonOutput({ ok: false, error: "Gemini 未回傳文字" });',
+      '  } catch (err) { return jsonOutput({ ok: false, error: String(err && err.message ? err.message : err) }); }',
+      '}'
+    ].join("\n");
+
+    let state = load();
+    let pollTimer = null;
+
+    function defaults() {
+      return {
+        round: 1,
+        topic: "",
+        sortBy: "new",
+        bigFont: false,
+        sync: { sheetUrl: "", formUrl: "", autoPoll: false, gasProxyUrl: "", geminiKey: "" },
+        notes: [],
+        ignoredIds: [],
+        history: []
+      };
+    }
+
+    function load() {
+      let base = defaults();
+      try {
+        const raw = localStorage.getItem(STORE);
+        if (raw) {
+          const p = JSON.parse(raw);
+          base = { ...base, ...p, sync: { ...base.sync, ...(p.sync || {}) } };
+        }
+      } catch {}
+      // Allow loading sheet/form/gas URL safely via bookmark params (never read API keys from URL)
+      try {
+        const qs = new URLSearchParams(location.search);
+        if (qs.get("sheet")) base.sync.sheetUrl = qs.get("sheet").trim();
+        if (qs.get("form")) base.sync.formUrl = qs.get("form").trim();
+        if (qs.get("gas")) base.sync.gasProxyUrl = qs.get("gas").trim();
+      } catch {}
+      return base;
+    }
+
+    function save() {
+      try { localStorage.setItem(STORE, JSON.stringify(state)); } catch {}
+    }
+
+    function toast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 2300);
+    }
+
+    function esc(s) {
+      return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    /* ---- Google Sheet JSONP & CSV Sync ---- */
+    function fetchJsonp(sheetId, gid) {
+      return new Promise((resolve, reject) => {
+        const cb = "__putiPubCb_" + Date.now() + "_" + Math.floor(Math.random() * 9999);
+        const sc = document.createElement("script");
+        let done = false;
+        const clean = () => { delete window[cb]; sc.remove(); };
+        const t = setTimeout(() => { if (!done) { done = true; clean(); reject(new Error("連線逾時")); } }, 10000);
+
+        window[cb] = (res) => {
+          if (done) return;
+          done = true; clearTimeout(t); clean();
+          if (!res || res.status === "error") {
+            reject(new Error(res?.errors?.[0]?.message || "讀取失敗"));
+            return;
+          }
+          const tb = res.table || {};
+          const labels = (tb.cols || []).map((c) => (c.label || "").trim());
+          const rows = [];
+          if (labels.some(Boolean)) rows.push(labels);
+          (tb.rows || []).forEach((r) => {
+            const cells = (r.c || []).map((cell) => cell ? String(cell.f ?? cell.v ?? "").trim() : "");
+            if (cells.some(Boolean)) rows.push(cells);
+          });
+          resolve(rows);
+        };
+
+        sc.onerror = () => {
+          if (done) return;
+          done = true; clearTimeout(t); clean();
+          reject(new Error("無法讀取，請確認試算表共用權限已設為「知道連結的人均可檢視」"));
+        };
+
+        const g = gid ? `&gid=${encodeURIComponent(gid)}` : "";
+        sc.src = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=${encodeURIComponent("out:json;responseHandler:" + cb)}${g}&_t=${Date.now()}`;
+        document.head.appendChild(sc);
+      });
+    }
+
+    function parseCsv(text) {
+      const rows = []; let row = [], f = "", q = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i], n = text[i + 1];
+        if (q) { if (c === '"' && n === '"') { f += '"'; i++; } else if (c === '"') q = false; else f += c; }
+        else {
+          if (c === '"') q = true;
+          else if (c === ",") { row.push(f.trim()); f = ""; }
+          else if ((c === "\r" && n === "\n") || c === "\n" || c === "\r") {
+            if (c === "\r" && n === "\n") i++;
+            row.push(f.trim()); rows.push(row); row = []; f = "";
+          } else f += c;
+        }
+      }
+      if (f || row.length) { row.push(f.trim()); rows.push(row); }
+      return rows.filter((r) => r.some(Boolean));
+    }
+
+    function hashRow(s) {
+      let h = 0;
+      for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+      return "gs-" + Math.abs(h).toString(36);
+    }
+
+    async function fetchSheetRows() {
+      const raw = (state.sync.sheetUrl || "").trim();
+      if (!raw) throw new Error("尚未設定 Google 試算表網址");
+      const idM = raw.match(/\/spreadsheets\/d\/(?!e\/)([a-zA-Z0-9-_]+)/);
+      const gidM = raw.match(/[?#&]gid=(\d+)/);
+      if (idM) return await fetchJsonp(idM[1], gidM ? gidM[1] : "");
+      const csvUrl = raw.includes("/pubhtml") ? raw.replace("/pubhtml", "/pub?output=csv") : raw;
+      const res = await fetch(csvUrl + (csvUrl.includes("?") ? "&" : "?") + "_t=" + Date.now());
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return parseCsv(await res.text());
+    }
+
+    function extractNotesFromRows(rows) {
+      if (!rows || rows.length < 2) return [];
+      const hdr = rows[0].map((h) => h.toLowerCase());
+      const findCol = (kws, fb) => {
+        const idx = hdr.findIndex((h) => kws.some((k) => h.includes(k)));
+        return idx >= 0 ? idx : fb;
+      };
+      const cTime = findCol(["時間", "timestamp"], 0);
+      const cAuthor = findCol(["組", "名", "暱稱", "作者", "誰", "name"], rows[0].length >= 3 ? 1 : -1);
+      const cIdea = findCol(["想法", "點子", "意見", "內容", "回應", "idea"], rows[0].length - 1);
+
+      const list = [];
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        const text = (r[cIdea] || "").trim();
+        if (!text) continue;
+        const author = cAuthor >= 0 ? (r[cAuthor] || "匿名").trim() : "匿名";
+        const id = hashRow(`${r[cTime] || i}|${author}|${text}`);
+        list.push({ id, author, text });
+      }
+      return list;
+    }
+
+    async function syncSheet(silent = false) {
+      if (!state.sync.sheetUrl) {
+        if (!silent) toast("請先點「⚙️ 設定」貼上你自己的 Google 試算表網址");
+        return;
+      }
+      try {
+        const rows = await fetchSheetRows();
+        if (!rows.length) { if (!silent) toast("✅ 已連線試算表！目前尚無資料"); return; }
+        if (rows.length < 2) { if (!silent) toast("✅ 已連線試算表（目前只有標題列，尚無回覆）"); return; }
+
+        const incoming = extractNotesFromRows(rows);
+        const existing = new Set(state.notes.map((n) => n.id));
+        const ignored = new Set(state.ignoredIds);
+        let added = 0;
+
+        incoming.forEach((item, idx) => {
+          if (!existing.has(item.id) && !ignored.has(item.id)) {
+            state.notes.unshift({
+              id: item.id,
+              author: item.author,
+              text: item.text,
+              votes: 1,
+              starred: false,
+              colorIdx: ((state.notes.length + idx) % 4) + 1,
+              ts: Date.now() + idx
+            });
+            added++;
+          }
+        });
+
+        save();
+        renderWall();
+        if (!silent || added > 0) {
+          toast(added ? `🔄 新增 ${added} 張便利貼！` : "✅ 已同步，尚無新便利貼");
+        }
+      } catch (err) {
+        if (!silent) toast("同步失敗：" + err.message);
+      }
+    }
+
+    function updateSyncUI() {
+      const dot = document.getElementById("syncDot");
+      const txt = document.getElementById("syncText");
+      if (state.sync.sheetUrl) {
+        dot.classList.add("live");
+        txt.textContent = state.sync.autoPoll ? "自動同步中" : "同步";
+      } else {
+        dot.classList.remove("live");
+        txt.textContent = "同步";
+      }
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+      if (state.sync.sheetUrl && state.sync.autoPoll) {
+        pollTimer = setInterval(() => syncSheet(true), 8000);
+      }
+    }
+
+    /* ---- Render Wall ---- */
+    function getSortedNotes() {
+      const arr = [...state.notes];
+      if (state.sortBy === "votes") {
+        arr.sort((a, b) => (b.starred - a.starred) || ((b.votes || 0) - (a.votes || 0)) || (b.ts - a.ts));
+      } else {
+        arr.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      }
+      return arr;
+    }
+
+    function loadDemoNotes() {
+      const samples = [
+        { author: "第1組 美玲", text: "讓學生帶昨晚家裡餐桌照片來分類，超有生活感！" },
+        { author: "第2組 阿哲", text: "前 5 分鐘直接用兩張便當照投票，不用講太多大道理。" },
+        { author: "第3組 小琪", text: "發卡片時很容易暴動，要先約定「手放背後倒數完才准翻牌」。" },
+        { author: "第4組 志明", text: "學習單給開頭句：「我推薦選擇＿＿＿，因為＿＿＿」。" }
+      ];
+      samples.forEach((s, i) => {
+        state.notes.unshift({
+          id: "demo-" + Date.now() + "-" + i,
+          author: s.author, text: s.text, votes: 2 + i, starred: i === 1, colorIdx: (i % 4) + 1, ts: Date.now() + i
+        });
+      });
+      if (!state.topic) {
+        state.topic = "如果只有 40 分鐘，這堂課怎麼設計最順？";
+        topicEl.value = state.topic;
+      }
+      save(); renderWall();
+      toast("已貼上 4 張示範便利貼！");
+    }
+
+    function renderWall() {
+      document.getElementById("roundBadge").textContent = `第 ${state.round} 輪`;
+      document.getElementById("noteCount").textContent = state.notes.length;
+      document.getElementById("histCount").textContent = state.history.length;
+      document.getElementById("sortNewBtn").classList.toggle("active", state.sortBy === "new");
+      document.getElementById("sortVoteBtn").classList.toggle("active", state.sortBy === "votes");
+
+      const list = getSortedNotes();
+      const wall = document.getElementById("wall");
+      if (!list.length) {
+        wall.innerHTML = `
+          <div class="empty-wall">
+            <h2>這裡是第 ${state.round} 輪的空白便利貼牆（公開自訂版）</h2>
+            <p>不綁任何固定帳號與表單！你可以直接在上方打字貼便利貼，或綁定你自己的 Google 表單讓全場掃碼同步。</p>
+            <div class="empty-actions">
+              <button type="button" class="primary" id="emptySetupBtn">⚙️ 綁定我的表單／AI 設定</button>
+              <button type="button" id="emptyDemoBtn">🧪 載入示範便利貼體驗</button>
+            </div>
+          </div>
+        `;
+        document.getElementById("emptySetupBtn").onclick = () => document.getElementById("setupBtn").click();
+        document.getElementById("emptyDemoBtn").onclick = loadDemoNotes;
+        return;
+      }
+
+      wall.innerHTML = list.map((n) => `
+        <div class="sticky c${n.colorIdx || 1} ${n.starred ? "starred" : ""}">
+          <div class="sticky-text">${esc(n.text)}</div>
+          <div class="sticky-foot">
+            <span class="sticky-author" title="${esc(n.author)}">${esc(n.author)}</span>
+            <div class="sticky-btns">
+              <button type="button" class="mini" data-vote="${n.id}" title="讚 +1">👍 ${n.votes || 0}</button>
+              <button type="button" class="mini ${n.starred ? "on" : ""}" data-star="${n.id}" title="標記重點">★</button>
+              <button type="button" class="mini" data-del="${n.id}" title="移除">✕</button>
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      wall.querySelectorAll("[data-vote]").forEach((b) => {
+        b.onclick = () => {
+          const n = state.notes.find((x) => x.id === b.dataset.vote);
+          if (n) { n.votes = (n.votes || 0) + 1; save(); renderWall(); }
+        };
+      });
+      wall.querySelectorAll("[data-star]").forEach((b) => {
+        b.onclick = () => {
+          const n = state.notes.find((x) => x.id === b.dataset.star);
+          if (n) { n.starred = !n.starred; save(); renderWall(); }
+        };
+      });
+      wall.querySelectorAll("[data-del]").forEach((b) => {
+        b.onclick = () => {
+          const id = b.dataset.del;
+          state.notes = state.notes.filter((x) => x.id !== id);
+          if (id.startsWith("gs-") && !state.ignoredIds.includes(id)) state.ignoredIds.push(id);
+          save(); renderWall();
+        };
+      });
+    }
+
+    /* ---- AI Prompt & Direct Execution ---- */
+    function buildAiPrompt() {
+      const topic = state.topic.trim() || "現場討論主題（由講師口頭說明）";
+      const sorted = [...state.notes].sort((a, b) => (b.starred - a.starred) || ((b.votes || 0) - (a.votes || 0)));
+      const lines = sorted.map((n, i) => `${i + 1}. ${n.starred ? "★[重點] " : ""}[${n.author}｜👍${n.votes || 0}] ${n.text}`).join("\n");
+      return `以下是我們現場共創討論收集到的所有便利貼：
+
+【本輪討論題目】
+${topic}
+
+【大家貼上的便利貼（共 ${sorted.length} 張）】
+${lines}
+
+請幫我們：
+1. 把這些點子歸納成 3–5 個清楚的主軸或共識重點（保留提出者的組別／暱稱）。
+2. 特別點出被標記「★」或高票「👍」的創意亮點。
+3. 最後條列出「接下來可以直接拿來教學／執行的具體行動方案」。`;
+    }
+
+    async function runDirectGemini() {
+      if (!state.notes.length) { toast("牆上還沒有便利貼喔！"); return; }
+      const proxyUrl = (state.sync.gasProxyUrl || "").trim();
+      const key = (state.sync.geminiKey || "").trim();
+      if (!proxyUrl && !key) {
+        toast("尚未設定自己的 GAS 代理或 Gemini Key，請先按「📋 複製全部丟 AI」");
+        return;
+      }
+      document.getElementById("aiOutputBox").textContent = "⏳ AI 正在閱讀牆上所有便利貼並統整中...";
+      openModal("aiModal");
+      try {
+        let text = "";
+        if (proxyUrl) {
+          const res = await fetch(proxyUrl, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ prompt: buildAiPrompt() })
+          });
+          const rawText = await res.text();
+          if (rawText.trim().startsWith("<")) {
+            throw new Error("GAS 尚未授權或未設為「所有人」可存取，請確認 GAS 部署權限");
+          }
+          const data = JSON.parse(rawText);
+          if (!data.ok) throw new Error(data.error || "GAS 代理回傳錯誤");
+          text = data.text || "";
+        } else {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contents: [{ parts: [{ text: buildAiPrompt() }] }] })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error?.message || res.status);
+          text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+        }
+        document.getElementById("aiOutputBox").textContent = text || "無回傳內容";
+        state.lastSummary = text;
+        save();
+      } catch (err) {
+        document.getElementById("aiOutputBox").textContent = "整理失敗：" + err.message;
+      }
+    }
+
+    /* ---- New Round ---- */
+    async function startNewRound() {
+      if (state.notes.length > 0 && !confirm(`確定結束「第 ${state.round} 輪」並淨空牆面開始下一輪嗎？\n（目前的 ${state.notes.length} 張便利貼會自動存進「📁 紀錄」，試算表資料也不會被刪除）`)) {
+        return;
+      }
+      if (state.sync.sheetUrl) {
+        try {
+          const rows = await fetchSheetRows();
+          const currentSheetNotes = extractNotesFromRows(rows);
+          const ig = new Set(state.ignoredIds);
+          currentSheetNotes.forEach((n) => ig.add(n.id));
+          state.ignoredIds = Array.from(ig);
+        } catch {}
+      }
+
+      if (state.notes.length > 0) {
+        state.history.unshift({
+          round: state.round,
+          topic: state.topic.trim() || `第 ${state.round} 輪討論`,
+          time: new Date().toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" }),
+          notes: [...state.notes],
+          summary: state.lastSummary || ""
+        });
+      }
+
+      state.notes = [];
+      state.lastSummary = "";
+      state.round += 1;
+      state.topic = "";
+      document.getElementById("topicInput").value = "";
+      save();
+      renderWall();
+      toast(`🆕 已進入第 ${state.round} 輪！可輸入新題目繼續收點子`);
+    }
+
+    /* ---- Modals & Events ---- */
+    function openModal(id) { document.getElementById(id).classList.add("open"); }
+    function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+    document.querySelectorAll("[data-close]").forEach((b) => b.onclick = () => closeModal(b.dataset.close));
+    document.querySelectorAll(".modal-bg").forEach((bg) => bg.onclick = (e) => { if (e.target === bg) bg.classList.remove("open"); });
+
+    const topicEl = document.getElementById("topicInput");
+    topicEl.value = state.topic || "";
+    topicEl.oninput = (e) => { state.topic = e.target.value; save(); };
+
+    function addLocalNote() {
+      const textEl = document.getElementById("quickText");
+      const text = textEl.value.trim();
+      if (!text) return;
+      const author = document.getElementById("quickAuthor").value.trim() || "現場老師";
+      state.notes.unshift({
+        id: "loc-" + Date.now() + Math.random().toString(36).slice(2, 5),
+        author, text, votes: 1, starred: false, colorIdx: (state.notes.length % 4) + 1, ts: Date.now()
+      });
+      textEl.value = "";
+      save(); renderWall(); textEl.focus();
+    }
+    document.getElementById("quickAddBtn").onclick = addLocalNote;
+    document.getElementById("quickText").onkeydown = (e) => { if (e.key === "Enter") addLocalNote(); };
+
+    document.getElementById("sortNewBtn").onclick = () => { state.sortBy = "new"; save(); renderWall(); };
+    document.getElementById("sortVoteBtn").onclick = () => { state.sortBy = "votes"; save(); renderWall(); };
+
+    document.getElementById("syncBtn").onclick = () => syncSheet(false);
+    document.getElementById("newRoundBtn").onclick = startNewRound;
+    document.getElementById("copyAiBtn").onclick = async () => {
+      if (!state.notes.length) { toast("牆上還沒有便利貼可以複製！"); return; }
+      try {
+        await navigator.clipboard.writeText(buildAiPrompt());
+        toast(`📋 已複製「${state.notes.length} 張便利貼」整理指令，直接去 Gemini 貼上即可！`);
+      } catch { toast("複製失敗"); }
+    };
+    document.getElementById("aiSummaryBtn").onclick = runDirectGemini;
+    document.getElementById("copyAiResultBtn").onclick = async () => {
+      try { await navigator.clipboard.writeText(document.getElementById("aiOutputBox").textContent); toast("已複製整理結果！"); } catch {}
+    };
+
+    const fontBtn = document.getElementById("fontBtn");
+    function applyFontState() {
+      document.documentElement.classList.toggle("big-font", state.bigFont);
+      fontBtn.classList.toggle("dark", state.bigFont);
+      fontBtn.textContent = state.bigFont ? "🔍 大字中" : "🔍 大字";
+    }
+    fontBtn.onclick = () => { state.bigFont = !state.bigFont; applyFontState(); save(); };
+    applyFontState();
+
+    // QR Modal
+    function toggleQrMax(force) {
+      const card = document.getElementById("qrModalCard");
+      const isMax = typeof force === "boolean" ? force : !card.classList.contains("qr-max");
+      card.classList.toggle("qr-max", isMax);
+      const tBtn = document.getElementById("qrMaxToggleBtn");
+      if (tBtn) tBtn.textContent = isMax ? "🗗 還原大小" : "⛶ 放到最大";
+    }
+    document.getElementById("qrMaxToggleBtn").onclick = () => toggleQrMax();
+
+    document.getElementById("qrBtn").onclick = () => {
+      const fUrl = (state.sync.formUrl || "").trim();
+      const body = document.getElementById("qrBody");
+      const maxBtn = document.getElementById("qrMaxToggleBtn");
+      toggleQrMax(false);
+      if (fUrl) {
+        maxBtn.style.display = "inline-flex";
+        body.innerHTML = `
+          <img id="qrZoomImg" class="qr-img-zoomable" src="https://api.qrserver.com/v1/create-qr-code/?size=640x640&data=${encodeURIComponent(fUrl)}" alt="QR Code" title="點擊放到最大 / 縮小" />
+          <p style="margin:0.5rem 0 0;font-size:1rem;font-weight:800;">${esc(state.topic || "請老師掃碼輸入想法，馬上就會貼到牆上！")}</p>
+          <span style="font-size:0.78rem;color:var(--subtle);">💡 再點一下 QR Code 圖片即可放到全螢幕最大</span>
+        `;
+        document.getElementById("qrZoomImg").onclick = () => toggleQrMax();
+      } else {
+        maxBtn.style.display = "none";
+        body.innerHTML = `
+          <p style="margin:0.5rem 0;color:var(--muted);">尚未設定你的 Google 表單網址，請先到「⚙️ 設定」貼入表單連結。</p>
+          <button type="button" class="primary" onclick="document.getElementById('qrModal').classList.remove('open');document.getElementById('setupBtn').click();">前往設定</button>
+        `;
+      }
+      openModal("qrModal");
+    };
+
+    // Setup Modal
+    document.getElementById("setupBtn").onclick = () => {
+      document.getElementById("inSheetUrl").value = state.sync.sheetUrl;
+      document.getElementById("inFormUrl").value = state.sync.formUrl;
+      document.getElementById("inAutoPoll").checked = state.sync.autoPoll;
+      document.getElementById("inGasProxyUrl").value = state.sync.gasProxyUrl;
+      document.getElementById("inGeminiKey").value = state.sync.geminiKey;
+      document.getElementById("proxyStatusMsg").textContent = "";
+      openModal("setupModal");
+    };
+
+    document.getElementById("copyBookmarkBtn").onclick = async () => {
+      const sheet = document.getElementById("inSheetUrl").value.trim();
+      const form = document.getElementById("inFormUrl").value.trim();
+      const gas = document.getElementById("inGasProxyUrl").value.trim();
+      if (!sheet && !form) { toast("請先填入你的試算表或表單網址"); return; }
+      const url = new URL(location.origin + location.pathname);
+      if (sheet) url.searchParams.set("sheet", sheet);
+      if (form) url.searchParams.set("form", form);
+      if (gas) url.searchParams.set("gas", gas);
+      try {
+        await navigator.clipboard.writeText(url.toString());
+        toast("🔗 已複製你的專屬書籤連結（不含 API Key）！");
+      } catch { toast("複製失敗"); }
+    };
+
+    document.getElementById("copyGasCodeBtn").onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(GAS_PROXY_CODE);
+        toast("📋 已複製 GAS 後端程式碼！");
+      } catch { toast("複製失敗"); }
+    };
+
+    document.getElementById("testProxyBtn").onclick = async () => {
+      const url = document.getElementById("inGasProxyUrl").value.trim();
+      const msgEl = document.getElementById("proxyStatusMsg");
+      if (!url) { msgEl.textContent = "請先填入 GAS 網址"; return; }
+      msgEl.textContent = "⏳ 測試連線中...";
+      try {
+        const res = await fetch(url);
+        const raw = await res.text();
+        if (raw.trim().startsWith("<")) {
+          msgEl.textContent = "⚠️ 尚未開通：請確認 GAS 已授權且部署權限為「所有人」";
+          msgEl.style.color = "#b91c1c";
+          return;
+        }
+        const data = JSON.parse(raw);
+        if (data.ok && data.hasKey) {
+          msgEl.textContent = "✅ GAS 代理連線成功，且後端已設定 GEMINI_API_KEY！";
+          msgEl.style.color = "#15803d";
+        } else if (data.ok) {
+          msgEl.textContent = "🟡 已連上 GAS，但後端「指令碼屬性」尚未新增 GEMINI_API_KEY";
+          msgEl.style.color = "#b45309";
+        } else {
+          msgEl.textContent = "❌ " + (data.error || "未知錯誤");
+          msgEl.style.color = "#b91c1c";
+        }
+      } catch (e) {
+        msgEl.textContent = "❌ 連線失敗：" + e.message;
+        msgEl.style.color = "#b91c1c";
+      }
+    };
+
+    document.getElementById("saveSetupBtn").onclick = async () => {
+      state.sync.sheetUrl = document.getElementById("inSheetUrl").value.trim();
+      state.sync.formUrl = document.getElementById("inFormUrl").value.trim();
+      state.sync.autoPoll = document.getElementById("inAutoPoll").checked;
+      state.sync.gasProxyUrl = document.getElementById("inGasProxyUrl").value.trim();
+      state.sync.geminiKey = document.getElementById("inGeminiKey").value.trim();
+      save(); updateSyncUI(); closeModal("setupModal");
+      if (state.sync.sheetUrl) await syncSheet(false);
+      else toast("設定已儲存！");
+    };
+
+    document.getElementById("demoBtn").onclick = () => {
+      closeModal("setupModal");
+      loadDemoNotes();
+    };
+
+    document.getElementById("unignoreBtn").onclick = async () => {
+      state.ignoredIds = [];
+      save(); closeModal("setupModal");
+      await syncSheet(false);
+    };
+
+    // History
+    document.getElementById("historyBtn").onclick = () => {
+      const body = document.getElementById("historyBody");
+      if (!state.history.length) {
+        body.innerHTML = `<p style="color:var(--muted);text-align:center;margin:1.5rem 0;">尚未有封存的回合。按「🆕 開新回合」後，上一輪的便利貼會保存在這裡。</p>`;
+      } else {
+        body.innerHTML = state.history.map((h) => `
+          <div class="history-item">
+            <div style="display:flex;justify-content:space-between;font-weight:800;margin-bottom:0.35rem;">
+              <span>第 ${h.round} 輪｜${esc(h.topic)}</span>
+              <span style="font-size:0.78rem;color:var(--subtle);">${h.time}（${h.notes.length} 張）</span>
+            </div>
+            <ul style="margin:0;padding-left:1.1rem;font-size:0.84rem;">
+              ${h.notes.map((n) => `<li><strong>${esc(n.author)}</strong>：${esc(n.text)} (👍${n.votes || 0})</li>`).join("")}
+            </ul>
+          </div>
+        `).join("");
+      }
+      openModal("historyModal");
+    };
+
+    document.getElementById("clearHistoryBtn").onclick = () => {
+      if (!state.history.length || !confirm("確定清空所有歷史回合紀錄？")) return;
+      state.history = []; save(); renderWall(); closeModal("historyModal");
+    };
+
+    document.getElementById("exportHistoryBtn").onclick = () => {
+      const rounds = [
+        ...(state.notes.length ? [{ round: state.round, topic: state.topic || `第 ${state.round} 輪`, notes: state.notes }] : []),
+        ...state.history
+      ];
+      if (!rounds.length) { toast("目前沒有可匯出的便利貼"); return; }
+      const md = rounds.map((r) => [
+        `## 第 ${r.round} 輪｜${r.topic}`,
+        ...r.notes.map((n) => `- ${n.starred ? "★ " : ""}[${n.author}｜👍${n.votes || 0}] ${n.text}`),
+        ""
+      ].join("\n")).join("\n");
+      const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+      const u = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = u; a.download = "現場共創便利貼紀錄.md"; a.click();
+      URL.revokeObjectURL(u);
+    };
+
+    updateSyncUI();
+    renderWall();
+  </script>
+</body>
+</html>
